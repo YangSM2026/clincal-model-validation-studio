@@ -27,7 +27,7 @@ python -m cmvs examples/demo.csv --outcome event_30d --event yes \
   --probability fixed_risk
 ```
 
-The command writes JSON to standard output. To save it, add `--output report.json`; it will not overwrite an existing file. The report includes row-level predictions, not just metrics. Treat it as sensitive if the input is sensitive.
+The command writes JSON to standard output. For the fictional example, run `mkdir -p demo-output` and add `--output demo-output/report.json`; the CLI will not overwrite an existing file. Reports include row-level predictions, not just metrics. Keep non-demo datasets and exports outside the checkout. Git ignore rules are a backup, not a privacy control: they do not protect files that are already tracked or added by force. Review staged files before committing.
 
 ## Workflow
 

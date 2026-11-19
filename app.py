@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
-from cmvs.core import read_csv, validate, evaluate_predictions
+from cmvs.core import evaluate_predictions, normalize_cell, read_csv, validate
 
 st.set_page_config(page_title="Clinical Model Validation", page_icon="◫", layout="wide")
 st.title("Clinical Model Validation")
@@ -87,7 +87,7 @@ with st.sidebar:
     if outcome is None:
         st.info("Select an outcome column to continue.")
         st.stop()
-    values = sorted(data[outcome].dropna().astype(str).unique().tolist())
+    values = sorted(data[outcome].map(normalize_cell).dropna().unique().tolist())
     if not values:
         st.error("The outcome contains no observed values.")
         st.stop()
@@ -171,8 +171,8 @@ for col, (key, label) in zip(st.columns(4), [
 if fixed:
     st.caption(f"Evaluated rows: {len(result.get('predictions', []))}")
 else:
-    st.caption(f"Training rows: {audit.get('train_rows', audit.get('n_train', '—'))} · "
-               f"Holdout rows: {audit.get('test_rows', audit.get('n_test', '—'))}")
+    st.caption(f"Training rows: {audit.get('n_train', '—')} · "
+               f"Holdout rows: {audit.get('n_test', '—')}")
 for warning in audit.get("warnings", []):
     st.warning(warning)
 

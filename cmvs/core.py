@@ -61,7 +61,8 @@ def read_csv(file_or_path):
     return pd.DataFrame(records, columns=header, dtype=object)
 
 
-def _clean(v):
+def normalize_cell(v):
+    """Preserve textual codes while converting recognized missing values to None."""
     if pd.isna(v):
         return None
     value = str(v).strip()
@@ -117,7 +118,7 @@ def validate(data, outcome, event, numeric, categorical, *, test_size=.25, seed=
         raise ValueError("seed must be an integer from 0 to 2**32 - 1.")
     if isinstance(bootstrap, bool) or not isinstance(bootstrap, (int, np.integer)) or not 0 <= bootstrap <= 10000:
         raise ValueError("bootstrap must be an integer from 0 to 10000.")
-    frame = data.reset_index(drop=True).map(_clean)
+    frame = data.reset_index(drop=True).map(normalize_cell)
     present = frame[outcome].notna().to_numpy()
     ids = np.flatnonzero(present)
     labels = frame.loc[present, outcome].to_numpy()
@@ -229,7 +230,9 @@ def _assessment(y_test, p, bootstrap, seed, baseline=None):
             calibration.append({"mean_predicted": float(p[mask].mean()),
                                 "observed_rate": float(y_test[mask].mean()), "n": int(mask.sum())})
     decisions = []
-    for t in np.arange(.05, 1, .05):
+    for percent in range(5, 100, 5):
+        # Match the float parsed from a probability at the nominal cutoff.
+        t = percent / 100
         c = _confusion(y_test, p, t)
         decisions.append({"threshold": float(t),
                           "net_benefit": float((c["tp"] - c["fp"] * t / (1 - t)) / len(y_test)),
@@ -282,7 +285,7 @@ def evaluate_predictions(data, outcome, event, probability, *, bootstrap=0, seed
         raise ValueError("seed must be an integer from 0 to 2**32 - 1.")
     if isinstance(bootstrap, bool) or not isinstance(bootstrap, (int, np.integer)) or not 0 <= bootstrap <= 10000:
         raise ValueError("bootstrap must be an integer from 0 to 10000.")
-    labels = data[outcome].reset_index(drop=True).map(_clean)
+    labels = data[outcome].reset_index(drop=True).map(normalize_cell)
     ids = np.flatnonzero(labels.notna().to_numpy())
     levels = sorted(set(labels.iloc[ids]))
     if len(levels) != 2:

@@ -3,3 +3,12 @@ __pycache__/
 *.py[cod]
 demo-output/
 local-data/
+
+# Local datasets and reports; the checked-in example is fictional.
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.parquet
+*.json
+!/examples/demo.csv
